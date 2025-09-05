@@ -1,7 +1,6 @@
 function [time, solutions] = timeFunctions()
     time = zeros(30, 13);
     solutions = zeros(30, 13);
-
     for i = 1:30
         tic;
         [~,solutions(i,1)] = NIZAROptimizer(@sphere, bounds(50,-100,100), 25, 1400);
@@ -62,9 +61,9 @@ function [time, solutions] = timeFunctions()
         [~,solutions(i,12)] = NIZAROptimizer(@tension_compression_spring_design, [0.05 2; 0.25 1.3; 2 15], 25, 1400);
         time(i,12) = toc;
     end
-    %for i = 1:30
-    %    tic;
-    %    [~,solutions(i,13)] = NIZAROptimizer(@quartic, [0.05 2; 0.25 1.3; 2 15], 25, 1400);
-    %    time(i,13) = toc;
-    %end
+    for i = 1:30
+        tic;
+        [~,solutions(i,13)] = NIZAROptimizer(@artificial, [0.05 2; 0.25 1.3; 2 15], 25, 1400);
+        time(i,13) = toc;
+    end
 end
