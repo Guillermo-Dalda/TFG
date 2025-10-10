@@ -63,7 +63,7 @@ void get_JKM_betas_deltas(Mersenne_Twister* rng, int n, int i, int* j, int* k, i
         *j = getRandomNumber(rng) % n;
     while (i == *k || *j == *k)
         *k = getRandomNumber(rng) % n;
-    while (i == *m | *j == *m || *k == *m)
+    while (i == *m || *j == *m || *k == *m)
         *m = getRandomNumber(rng) % n;
     
     *beta1 = getRandomNumber(rng) / (double)UINT_MAX;
@@ -159,4 +159,5 @@ double* NOA(Mersenne_Twister* rng, int n, int stopping_criteria, int dim, double
     free(solutions);
     
     return result;
+
 }
