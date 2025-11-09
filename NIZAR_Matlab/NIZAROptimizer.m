@@ -32,8 +32,8 @@ function [sol,fval] = NIZAROptimizer(func, bounds, popSize, maxCycles)
                 p3 = ConstructP3(lambdas, alfas, p1, t2, t3, B2);
                 vj = fi_3(alfas(1), xj, t3); % Eq. (2.12)
                 vk = fi_3(alfas(1), xk, t3); % Eq. (2.12)
-                dj = B1*((-1)^(jkm(1))); % dj = B1 * (-1)^j ; dk = B2 * (-1)^k <Between Eq. (2.11) & Eq. (2.12)>
-                dk = B2*((-1)^(jkm(2)));
+                dj = B1*((-1)^(candidates(jkm(1)))); % dj = B1 * (-1)^j ; dk = B2 * (-1)^k <Between Eq. (2.11) & Eq. (2.12)>
+                dk = B2*((-1)^(candidates(jkm(2))));
                 xi_prime = BuildS2(lambdas, dj, dk, p2, p3, vj, vk); % <Step 6><Eq. (2.11)>
             end
             % Overlap phase
@@ -73,7 +73,7 @@ function T = fi_1(alfa, x, r) % Eq. (2.2). Alfa is a threshold, x is a solution 
     if alfa <= 0.5
         T = x;
     else
-        T = x + (r^2*(ones(length(x), 1))); % As many rows in <ones> as rows in X, single column vector
+        T = round(x + (r^2*(ones(length(x), 1)))); % As many rows in <ones> as rows in X, single column vector
     end
 end
 
@@ -81,7 +81,7 @@ function T = fi_2(alfa, x, r) % Eq. (2.3). Alfa is a threshold, x is a solution 
     if alfa <= 0.5
         T = x;
     else
-        T = x * (r^2); % Scaling
+        T = round(x * (r^2)); % Scaling
     end
 end
 
@@ -93,14 +93,14 @@ function T = fi_3(alfa, xi, xj) % Eq. (2.4).  Alfa is a threshold, xi is a solut
     end
 end
 
-function output = replace(target, input) % See Fig. 2 to 4
+function output = replace(input, target) % See Fig. 2 to 4
     nDim = length(target);
     selMask = (randi([0, 1], [1, nDim]) > 0); % Same probability of being replaced (directly turning double to logic)
     output = input;
     output(selMask) = target(selMask);
 end
 
-function output = scramble(target, input) % See Fig. 2 to 4 % WARNING: This function may violate bounds when variables have different limits
+function output = scramble(input, target) % See Fig. 2 to 4 % WARNING: This function may violate bounds when variables have different limits
     nDim = length(target);
     selMask = (randi([0, 1], [1, nDim]) > 0); % Same probability of being replaced (directly turning double to logic)
     output = input;
@@ -109,7 +109,7 @@ function output = scramble(target, input) % See Fig. 2 to 4 % WARNING: This func
     output(selMask) = chosen;
 end
 
-function output = distribute(target, input) % See Fig. 2 to 4 % WARNING: This function may violate bounds when variables have different limits
+function output = distribute(input, target) % See Fig. 2 to 4 % WARNING: This function may violate bounds when variables have different limits
     nDim = length(target);
     chosen = target(randi(nDim));
     output = input;
