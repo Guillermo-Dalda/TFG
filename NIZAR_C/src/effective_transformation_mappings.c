@@ -18,7 +18,8 @@ void dilation_map(double* X, double r, double alpha, double* result, int dim){
             memcpy(result, X, dim * sizeof(double));
     else{
         mul(r*r, X, result, dim);
-        result = round(result);
+        for (int i = 0; i < dim; i++)
+            result[i] = round(result[i]);
     }
 }
 
@@ -31,3 +32,4 @@ void transfer_map(double* Xi, double* Xj, double alpha, double* result, int dim)
             memcpy(result, Xj, dim * sizeof(double));
 
 }
+
