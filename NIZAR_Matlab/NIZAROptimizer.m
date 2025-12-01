@@ -8,7 +8,7 @@
 % popSize: Population size. A population is a nDim x popSize matrix
 % maxCycles: Maximum number of iterations
 
-function [sol,fval] = NIZAROptimizer(func, bounds, popSize, maxCycles)
+function [sol, fval] = NIZAROptimizer(func, bounds, popSize, maxCycles)
     [pop, vals] = CreatePopulation(popSize, bounds, func); % A row per dim. A column per individual
     for c = 1:1:maxCycles
         % Step 4:
@@ -32,13 +32,13 @@ function [sol,fval] = NIZAROptimizer(func, bounds, popSize, maxCycles)
                 p3 = ConstructP3(lambdas, alfas, p1, t2, t3, B2);
                 vj = fi_3(alfas(1), xj, t3); % Eq. (2.12)
                 vk = fi_3(alfas(1), xk, t3); % Eq. (2.12)
-                dj = B1*((-1)^(candidates(jkm(1)))); % dj = B1 * (-1)^j ; dk = B2 * (-1)^k <Between Eq. (2.11) & Eq. (2.12)>
-                dk = B2*((-1)^(candidates(jkm(2))));
+                dj = B1 * (1 - 2*mod(candidates(jkm(1)), 2) ); % WARNING (jkm(1) is not directly j!): % dj = B1 * (-1)^j; <Between Eq. (2.11) & Eq. (2.12)>
+                dk = B2 * (1 - 2*mod(candidates(jkm(2)), 2) ); % WARNING (jkm(2) is not directly k!): % dk = B2 * (-1)^k
                 xi_prime = BuildS2(lambdas, dj, dk, p2, p3, vj, vk); % <Step 6><Eq. (2.11)>
             end
             % Overlap phase
             if (all( abs(xi_prime - xBest) < eps) ) || (all( abs(xi - xBest) < eps) ) || rand() <= 1/4 % <Step 7><Eq. (2.19)> % Comparing equality of floating point vectors with an epsilon
-                xi_prime = RebuildS1(lambdas, xi_prime, xj, xk, xm, xBest);
+                xi_prime = RebuildS1(lambdas, xi, xj, xk, xm, xBest);
             end
             xi_prime = FixLimits(xi_prime, xi, bounds); % <Step 8: Call to Eq. (2.21)>
             val_prime = func(xi_prime);
@@ -73,7 +73,7 @@ function T = fi_1(alfa, x, r) % Eq. (2.2). Alfa is a threshold, x is a solution 
     if alfa <= 0.5
         T = x;
     else
-        T = round(x + (r^2*(ones(length(x), 1)))); % As many rows in <ones> as rows in X, single column vector
+        T = round( x + (r^2*(ones(length(x), 1))) ); % As many rows in <ones> as rows in X, single column vector || [.] is the nearest integer function (see below Eq. (2.2) & examp. in Eq. (2.7))
     end
 end
 
@@ -81,8 +81,8 @@ function T = fi_2(alfa, x, r) % Eq. (2.3). Alfa is a threshold, x is a solution 
     if alfa <= 0.5
         T = x;
     else
-        T = round(x * (r^2)); % Scaling
-    end
+        T = round( x * (r^2) ); % Scaling || [.] denotes the nearest integer function in the paper, as described for the Eq. above. The example in Eq. (2.7) is not descriptive as it lacks decimals.
+    end                         % However, most expressions do not have [.], so we assume that it is intended to mean "rounding" when used, as said for Eq. (2.2)
 end
 
 function T = fi_3(alfa, xi, xj) % Eq. (2.4).  Alfa is a threshold, xi is a solution vector and xj is another solution vector
@@ -93,14 +93,14 @@ function T = fi_3(alfa, xi, xj) % Eq. (2.4).  Alfa is a threshold, xi is a solut
     end
 end
 
-function output = replace(input, target) % See Fig. 2 to 4
+function output = replace(input, target) % See Fig. 2 to 4 || replace(target, input) <Old nomenclature>
     nDim = length(target);
     selMask = (randi([0, 1], [1, nDim]) > 0); % Same probability of being replaced (directly turning double to logic)
     output = input;
     output(selMask) = target(selMask);
 end
 
-function output = scramble(input, target) % See Fig. 2 to 4 % WARNING: This function may violate bounds when variables have different limits
+function output = scramble(input, target) % See Fig. 2 to 4 % WARNING: This function may violate bounds when variables have different limits || scramble(target, input) <Old nomenclature>
     nDim = length(target);
     selMask = (randi([0, 1], [1, nDim]) > 0); % Same probability of being replaced (directly turning double to logic)
     output = input;
@@ -109,7 +109,7 @@ function output = scramble(input, target) % See Fig. 2 to 4 % WARNING: This func
     output(selMask) = chosen;
 end
 
-function output = distribute(input, target) % See Fig. 2 to 4 % WARNING: This function may violate bounds when variables have different limits
+function output = distribute(input, target) % See Fig. 2 to 4 % WARNING: This function may violate bounds when variables have different limits  || distribute(target, input) <Old nomenclature>
     nDim = length(target);
     chosen = target(randi(nDim));
     output = input;
@@ -177,7 +177,7 @@ function s2 = BuildS2(lambdas, dj, dk, p2, p3, vj, vk)
     end
 end
 
-function s1 = RebuildS1(lambdas, xi_prime, xj, xk, xm, xBest) % reupdate the new solution
+function s1 = RebuildS1(lambdas, xi, xj, xk, xm, xBest) % reupdate the new solution 
     [B1, B2] = deal( rand(length(xj), 1)*2 - 1, rand(length(xj), 1)*2 - 1 ); % Explanation below Eq. (2.19) in the paper <RANGE BETWEEN -1 AND 1>
     if lambdas(3) == 1 % Refactor of p1 with a new kind of Beta during the overlap stage
         p1 = xm;
@@ -189,9 +189,9 @@ function s1 = RebuildS1(lambdas, xi_prime, xj, xk, xm, xBest) % reupdate the new
         end
     end
     if lambdas(2) == 1 % Modified Eq. (10) to reupdate the new solution during the overlap phase
-        s1 = p1 + B1 .* (xi_prime - xj) + B2 .* (xi_prime - xk);
+        s1 = p1 + B1 .* (xi - xj) + B2 .* (xi - xk);
     else
-        s1 = xi_prime + B1 .* (p1 - xj) -  B2 .* (p1 - xk);
+        s1 = xi + B1 .* (p1 - xj) -  B2 .* (p1 - xk);
     end
 end
 
